@@ -1,0 +1,45 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+//ParticleStruct same as in cs & shader file
+struct Particle {
+	float3 position;
+	float3 velocity;
+
+};
+
+//float ParticleMassInv = 1.0f / 0.1f;
+//float Gravity1 = 1000.0f;
+//float Gravity2 = 1000.0f;
+
+// Buffer with particle data shared with the shader
+RWStructuredBuffer<Particle> particleBuffer;
+
+// variables tha come from CPU!
+float deltaTime;
+float3 blackHolePosition1;
+float3 blackHolePosition2;
+
+
+
+[numthreads(256,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+
+	float3 delta1 = blackHolePosition1 - particleBuffer[id.x].position;
+	float3 delta2 = blackHolePosition2 - particleBuffer[id.x].position;
+
+	float3 force = (1.0f / length(delta1)) * normalize(delta1);
+
+	force += (1.0f / length(delta2)) * normalize(delta2);
+
+	//Do simple euler equations
+
+	float3 a = force * (1.0f / 0.1f);
+	particleBuffer[id.x].position += particleBuffer[id.x].velocity*deltaTime + 0.5f* a * deltaTime *deltaTime;
+	particleBuffer[id.x].velocity += a*deltaTime;
+
+
+	
+
+}
